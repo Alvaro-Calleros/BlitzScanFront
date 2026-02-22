@@ -2,38 +2,74 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 import Index from "./pages/Index";
-import Demo from "./pages/Demo";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Scanner from "./pages/Scanner";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Componente para proteger rutas — redirige a Clerk si no hay sesión
+const RutaProtegida = ({ children }: { children: React.ReactNode }) => (
+  <>
+    <SignedIn>{children}</SignedIn>
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <div className="min-h-screen bg-white">
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/demo" element={<Demo />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/scanner" element={<Scanner />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </div>
-      </AuthProvider>
+      <Toaster />
+      <Sonner />
+      <div className="min-h-screen bg-white">
+        <BrowserRouter>
+          <Routes>
+            {/* Ruta pública — landing page */}
+            <Route path="/" element={<Index />} />
+
+            {/* Rutas protegidas — requieren sesión de Clerk */}
+            {/* TODO: Reemplazar Navigate por los componentes nuevos cuando se construyan */}
+            <Route
+              path="/dashboard"
+              element={
+                <RutaProtegida>
+                  <Navigate to="/" replace />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/setup"
+              element={
+                <RutaProtegida>
+                  <Navigate to="/" replace />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/checklist/:id"
+              element={
+                <RutaProtegida>
+                  <Navigate to="/" replace />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/report/:id"
+              element={
+                <RutaProtegida>
+                  <Navigate to="/" replace />
+                </RutaProtegida>
+              }
+            />
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
     </TooltipProvider>
   </QueryClientProvider>
 );
